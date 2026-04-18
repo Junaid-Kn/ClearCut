@@ -49,6 +49,7 @@ import { OcRippleIcon } from "@/components/icons";
 import { GraphEditorPopover } from "./graph-editor/popover";
 import { PopoverTrigger } from "@/components/ui/popover";
 import { useGraphEditorController } from "./graph-editor/use-controller";
+import { useKeyboardShortcutsHelp } from "@/hooks/use-keyboard-shortcuts-help";
 
 export function TimelineToolbar({
 	zoomLevel,
@@ -95,6 +96,13 @@ function ToolbarLeftSection() {
 	const isCurrentlyBookmarked = useEditor((e) =>
 		e.scenes.isBookmarked({ time: e.playback.getCurrentTime() }),
 	);
+	const { shortcuts } = useKeyboardShortcutsHelp();
+	const shortcutMap = Object.fromEntries(
+	shortcuts.map(s => [s.action, s])
+	);
+
+
+
 	const selectedElement =
 		selectedElements.length === 1
 			? (editor.timeline.getElementsWithTracks({
@@ -128,6 +136,80 @@ function ToolbarLeftSection() {
 			element: selectedElement.element,
 		});
 
+	const ToolTipShortcuts = {
+		"split": {
+			icon: <HugeiconsIcon icon={ScissorIcon} />,
+			tooltip: `Split element (${shortcutMap["split"]?.keys[0]})`,
+			disabled: false,
+			onClick: ({ event }) =>
+			handleAction({ action: "split", event }),
+		},
+
+		"split-left": {
+			icon: <HugeiconsIcon icon={AlignLeftIcon} />,
+			tooltip: `Split left (${shortcutMap["split-left"]?.keys[0]})`,
+			disabled: false,
+			onClick: ({ event }) =>
+			handleAction({ action: "split-left", event }),
+		},
+
+		"split-right": {
+			icon: <HugeiconsIcon icon={AlignRightIcon} />,
+			tooltip: `Split right (${shortcutMap["split-right"]?.keys[0]})`,
+			disabled: false,
+			onClick: ({ event }) =>
+			handleAction({ action: "split-right", event }),
+		},
+
+		"toggle-source-audio": {
+			icon: (
+			<HugeiconsIcon
+				icon={
+				isSelectedSourceAudioSeparated
+					? Unlink02Icon
+					: Link02Icon
+				}
+			/>
+			),
+			tooltip: sourceAudioLabel,
+			disabled: !canToggleSelectedSourceAudio,
+			onClick: ({ event }) =>
+			handleAction({
+				action: "toggle-source-audio",
+				event
+			}),
+		},
+
+		"duplicate-selected": {
+			icon: <HugeiconsIcon icon={Copy01Icon} />,
+			tooltip: "Duplicate element",
+			disabled: false,
+			onClick: ({ event }) =>
+			handleAction({
+				action: "duplicate-selected",
+				event
+			}),
+		},
+
+		"freeze-frame": {
+			icon: <HugeiconsIcon icon={SnowIcon} />,
+			tooltip: "Freeze frame (coming soon)",
+			disabled: true,
+			onClick: ({ event: _event }) => {},
+		},
+
+		"delete-selected": {
+			icon: <HugeiconsIcon icon={Delete02Icon} />,
+			tooltip: `Delete element (${shortcutMap["delete-selected"]?.keys.join(" / ")})`,
+			disabled: false,
+			onClick: ({ event }) =>
+			handleAction({
+				action: "delete-selected",
+				event
+			}),
+		},
+	};
+
 	const handleAction = ({
 		action,
 		event,
@@ -142,61 +224,14 @@ function ToolbarLeftSection() {
 	return (
 		<div className="flex items-center gap-1">
 			<TooltipProvider delayDuration={500}>
-				<ToolbarButton
-					icon={<HugeiconsIcon icon={ScissorIcon} />}
-					tooltip="Split element"
-					onClick={({ event }) => handleAction({ action: "split", event })}
-				/>
-
-				<ToolbarButton
-					icon={<HugeiconsIcon icon={AlignLeftIcon} />}
-					tooltip="Split left"
-					onClick={({ event }) => handleAction({ action: "split-left", event })}
-				/>
-
-				<ToolbarButton
-					icon={<HugeiconsIcon icon={AlignRightIcon} />}
-					tooltip="Split right"
-					onClick={({ event }) =>
-						handleAction({ action: "split-right", event })
-					}
-				/>
-
-				<ToolbarButton
-					icon={
-						<HugeiconsIcon
-							icon={isSelectedSourceAudioSeparated ? Unlink02Icon : Link02Icon}
+				{Object.values(ToolTipShortcuts).map((item)=> (
+					<ToolbarButton
+						icon={item.icon}
+						disabled={item.disabled}
+						tooltip={item.tooltip}
+						onClick={item.onClick}
 						/>
-					}
-					tooltip={sourceAudioLabel}
-					disabled={!canToggleSelectedSourceAudio}
-					onClick={({ event }) =>
-						handleAction({ action: "toggle-source-audio", event })
-					}
-				/>
-
-				<ToolbarButton
-					icon={<HugeiconsIcon icon={Copy01Icon} />}
-					tooltip="Duplicate element"
-					onClick={({ event }) =>
-						handleAction({ action: "duplicate-selected", event })
-					}
-				/>
-
-				<ToolbarButton
-					icon={<HugeiconsIcon icon={SnowIcon} />}
-					tooltip="Freeze frame (coming soon)"
-					disabled={true}
-					onClick={({ event: _event }) => {}}
-				/>
-
-				<ToolbarButton
-					icon={<HugeiconsIcon icon={Delete02Icon} />}
-					tooltip="Delete element"
-					onClick={({ event }) =>
-						handleAction({ action: "delete-selected", event })
-					}
-				/>
+				))}
 
 				<div className="bg-border mx-1 h-6 w-px" />
 
