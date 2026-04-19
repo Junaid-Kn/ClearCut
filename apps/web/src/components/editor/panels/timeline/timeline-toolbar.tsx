@@ -99,9 +99,7 @@ function ToolbarLeftSection() {
 	const { shortcuts } = useKeyboardShortcutsHelp();
 	const shortcutMap = Object.fromEntries(
 	shortcuts.map(s => [s.action, s])
-	);
-	console.log(shortcutMap);
-	
+	);	
 
 
 	const selectedElement =
